@@ -1,0 +1,146 @@
+<head>
+<title>Routine</title>
+<meta name="viewport" content="width=device-width height=device-height initial-scale=1.0
+                               minimum-scale=1.0 maximum-scale=1.0 user-scalable=no"/>
+<style>
+    button{
+        font-size: 1.5em;
+        font-weight: bold;
+        color:forestgreen;
+        background-color: transparent;
+        border: none;
+    }
+
+</style>
+<script>
+    let rout_lst={}; //rountine list
+    function music(nick_name){
+        const table={
+            // <nick_name>:<music file src>
+            "small":"Budda_small_bell_3s.mp3",
+            "large":"Budda_large_bell_3s.mp3",
+            "default":""
+        };
+        if(Object.hasOwn(table,nick_name) == true){
+            return new Audio(table[nick_name]);
+        }else{
+            console.error("Music Mange ERROR: You have input the inexistent nick name.")
+            return new Audio(""); //return the wrong Aduio Element any way for the further handling
+        }
+    }
+    function dur_s(nick_name){
+        //get duration of music by promise
+       return new Promise((resolve,reject)=>{
+            let tmp=music(nick_name);
+            if(tmp.src == ""){
+                reject(new Error("Failed to get the music duration"));
+            }
+            tmp.ondurationchange=(event)=>{
+                resolve(Math.ceil(tmp.duration));
+            }
+        });
+    }
+    function $(id){
+        return document.getElementById(id);
+    }
+    function read_url(src=location.href){
+        let url= new URL(src);
+        let sp=[];
+        for(let [key,value] of url.searchParams){
+            if(value === "" && /^[0-9]+$/.test(key)){
+                sp=sp.concat([parseInt(key)]);
+            }
+        }
+        return Promise.all([dur_s("large"),dur_s("small")]).then(
+            (values)=>{
+                let [L,S] =values;
+                sp=sp.filter((t)=>t > L && t % 2 == 0 && t/2 > S);
+                let t=Math.min((L+S)*20,...sp); // the default value value calc
+                console.log(L,S,(L+S)*20);
+                return [{m:"large",s:t},
+                        {m:"small",s:t/2}];
+            });
+    }
+    function int(str){
+        let num=Number.parseInt(str);
+        if(isNaN(num) == true){
+            return null;
+        }else{
+            return num;
+        }
+    }
+    function local_time(){
+        let t=new Date();
+        return t.toLocaleTimeString();
+    }
+    function now(){
+        // time in s[econds]
+        return Math.trunc((new Date()).getTime()/1000);
+    }
+    function time_diff(time_stamp){
+        return now()-time_stamp;
+    }
+    function calc_s(s,m=0,h=0){
+        m=m+h*60;
+        s=s+m*60;
+        return s;
+    }
+    function verity(it){
+        if(it.checkValidity() == false){
+            return it.validationMessage;
+        }else if(it.value == ''){
+            return "Input Could not be empty";
+        }else{
+            return "";
+        }
+    }
+    function play(nick_name){
+        let audio=music(nick_name);
+        audio.play().then(null,(r)=>console.error(r));
+    }
+    function routine(time_stamp,routine_lst){
+        //routine_lst=[{m:<music nick name [see more at function music]>,s:60},...]
+        $("time").textContent=`Now is ${local_time()}`;
+        let s_diff=time_diff(time_stamp);
+        for(let rt of routine_lst){
+            if(s_diff % rt.s == 0){
+                play(rt.m);
+                break;
+            }else{/*PASS*/}
+        }
+    }
+    function start(routine_lst){
+        return setInterval(routine,1000,now(),routine_lst);
+    }
+    function end(id){
+        clearInterval(id);
+        $("time").textContent="";
+    }
+    function but_click(routine_lst){
+        return (it)=>{
+            if(it.textContent =="Begin"){
+                it.dataset.iid=start(routine_lst);
+                it.textContent="End";
+            }else{
+                end(it.dataset.iid);
+                it.textContent="Begin";
+            }
+        };
+    }
+    function init(){
+        read_url().then((v)=>{
+            $('prom').textContent=`Each ${v[0].s}s bell in large budda, and ${v[1].s}s bell in small budda.`;
+            let vbut=$('vbut');
+            vbut.textContent="Begin";
+            vbut.onclick=(event)=>but_click(v)(vbut);
+        },(e)=>{
+            console.error(e);
+        });
+    }
+</script>
+</head>
+<body style="font-size: 1.5em;" onload="init()">
+    <div id="prom" style="font-weight: bold;"></div>
+    <button id="vbut" onclick="console.error('please wait for load')">Waiting</button>
+    <div id="time" style="font-weight: bold;"></div>
+</body>
