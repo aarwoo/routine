@@ -53,6 +53,7 @@
         }
         return Promise.all([dur_s("large"),dur_s("small")]).then(
             (values)=>{
+                $('duration_time').textContent=`${Math.max(...values)}s`;
                 let [L,S] = values;
                 sp=sp.filter((t)=>t > L && t > S);
                 let default_t=(L+S)*10; //the default value will be calced
@@ -145,4 +146,16 @@
     <div id="prom" style="font-weight: bold;"></div>
     <button id="vbut" onclick="console.error('please wait for load')">Waiting</button>
     <div id="time" style="font-weight: bold;"></div>
+    <br>
+    <div>
+        For periodic ringing, you can define the periodic time using the URL parameter by appending ?[seconds]&&...&&[seconds]<br>
+        [seconds] will be process to get S and L<br>
+        Requires:<br>
+        [seconds] should be Integer<br>
+        [seconds] should be greater then <span id="duration_time">the duration of bell</span><br>
+        S = The min [seconds] is the periodic time for the small bell<br>
+        L = k * S where k is Integer<br>
+        L = The max [seconds] is the periodic time for the large bell<br>
+        Both S and L has the default times by calculated
+    </div>
 </body>
