@@ -53,12 +53,14 @@
         }
         return Promise.all([dur_s("large"),dur_s("small")]).then(
             (values)=>{
-                let [L,S] =values;
-                sp=sp.filter((t)=>t > L && t % 2 == 0 && t/2 > S);
-                let t=Math.min((L+S)*20,...sp); // the default value value calc
-                console.log(L,S,(L+S)*20);
-                return [{m:"large",s:t},
-                        {m:"small",s:t/2}];
+                let [L,S] = values;
+                sp=sp.filter((t)=>t > L && t > S);
+                let default_t=(L+S)*10; //the default value will be calced
+                let s = Math.min(...sp,default_t);
+                sp=sp.filter((t)=>t % s == 0 && t != s);
+                let l = Math.max(...sp,s*2);
+                return [{m:"large",s:l},
+                        {m:"small",s:s}];
             });
     }
     function int(str){
